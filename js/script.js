@@ -16,6 +16,8 @@ app.controller('loginController', function(postData, $scope, $location, $cookies
   }
   var url = "http://localhost:8090/customer/auth"
   $scope.authenticate = function() {
+    $scope.message = ""
+
     var data = {
       "emailAddress": $scope.email,
       "password": $scope.password
@@ -24,17 +26,24 @@ app.controller('loginController', function(postData, $scope, $location, $cookies
       if (d.code == 1) {
         $cookies.put("token", d.token)
         $location.path("/dashboard")
+      } else {
+        $scope.message = "Invalid credentials"
       }
+    }).catch(function(err) {
+      $scope.message = err
     })
   }
 })
 
-app.controller('ordersController', function(getData, $scope, $cookies, $location) {
+app.controller('ordersController', function(getData, $scope, $rootScope, $cookies, $location) {
     var token = $cookies.get("token")
 
     if (token == undefined) {
+      $rootScope.isSignedIn = false
       $location.path("/")
     }
+
+    $rootScope.isSignedIn = true
 
     var url = "http://localhost:8090/orders/getOrders?id=" + token
     getData.async(url).then(function(d) {
@@ -45,6 +54,7 @@ app.controller('ordersController', function(getData, $scope, $cookies, $location
 })
 
 app.controller('buyController', function(getData, postData, $scope, $cookies) {
+  $rootScope.isSignedIn = true
 
   $scope.letsBuyIt = function() {
     var url = "http://localhost:8000/securities/getAll"
