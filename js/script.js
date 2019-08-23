@@ -10,6 +10,13 @@ app.config(function($routeProvider) {
     })
 })
 
+app.controller("logoutController", function($scope, $cookies, $location) {
+  $scope.logout = function () {
+      $cookies.remove('token');
+      $location.path("/")
+  };
+})
+
 app.controller('loginController', function(postData, $scope, $location, $cookies) {
   if ($cookies.get("token") != undefined) {
     $location.path("/dashboard")
@@ -30,20 +37,17 @@ app.controller('loginController', function(postData, $scope, $location, $cookies
         $scope.message = "Invalid credentials"
       }
     }).catch(function(err) {
-      $scope.message = err
+      $scope.message = "Invalid credentials"
     })
   }
 })
 
-app.controller('ordersController', function(getData, $scope, $rootScope, $cookies, $location) {
+app.controller('ordersController', function(getData, postData, $scope,  $cookies, $location) {
     var token = $cookies.get("token")
 
     if (token == undefined) {
-      $rootScope.isSignedIn = false
       $location.path("/")
     }
-
-    $rootScope.isSignedIn = true
 
     var url = "http://localhost:8090/orders/getOrders?id=" + token
     getData.async(url).then(function(d) {
@@ -51,22 +55,49 @@ app.controller('ordersController', function(getData, $scope, $rootScope, $cookie
     }).catch(function(err) {
       console.log(err)
     });
+
+    $scope.letsBuyIt = function(buyModel, type, request) {
+      $scope.message = "";
+      var data = {
+        "orderNumber": buyModel.orderNumber,
+        "securityCode": buyModel.securityCode,
+        "price": buyModel.price,
+        "direction": type,
+        "quantity": buyModel.quantity,
+        "priceCondition": buyModel.priceCondition,
+        "customerCode": $cookies.get("token"),
+        "orderStatus": "Pending",
+        "tradeTime": buyModel.tradeTime
+      }
+      console.log($cookies.get("token"))
+
+      postData.async("http://localhost:8090/orders/"+request, data).then(function(response) {
+        if (response.code == "1") {
+          // alert("Updated successfully")
+          location.reload();
+          
+        } else {
+          alert("Unable to process request")
+        }
+      })
+    }
 })
 
 app.controller('buyController', function(getData, postData, $scope, $cookies) {
-  $rootScope.isSignedIn = true
 
-  $scope.letsBuyIt = function() {
-    var url = "http://localhost:8000/securities/getAll"
-    getData.async(url).then(function(response) {
+  $scope.getSecurities = function() {
+    getData.async("http://localhost:8090/securities/getAll").then(function(response) {
       $scope.securities = response
-      console.log(response)
     }).catch(function(error) {
+      alert("Unable to process request")
       $scope.message = "Try again later";
     })
+  }
+
+  $scope.letsBuyIt = function() {
     $scope.message = "";
     var data = {
-      "orderNumber": $scope.orderNumber,
+      "orderNumber": "",
       "securityCode": $scope.securityCode,
       "price": $scope.price,
       "direction": $scope.direction,
@@ -75,15 +106,14 @@ app.controller('buyController', function(getData, postData, $scope, $cookies) {
       "customerCode": $cookies.get("token"),
       "orderStatus": "Pending"
     }
-    url = "http://localhost:8090/orders/add"
-    postData.async(url, data).then(function(response) {
-      if (response.code == "1") {
-        var newArray = $scope.ordersArray;
-        newArray.push(data)
+    console.log(data)
+    console.log($cookies.get("token"))
 
-        $scope.ordersArray = newArray;
-        $scope.$apply()
+    postData.async("http://localhost:8090/orders/add", data).then(function(response) {
+      if (response.code == "1") {
+        location.reload()
       } else {
+        alert("Unable to process request")
         $scope.message = "Unable to process request"
       }
     })
@@ -113,3 +143,8 @@ app.factory('postData', function($http) {
   };
   return postData;
 });
+
+setTimeout(function() {
+  
+
+}, 0)

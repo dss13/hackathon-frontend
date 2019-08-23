@@ -1,48 +1,82 @@
-<div class="uk-width-1-1 uk-container">
-<button class="uk-button uk-button-primary uk-align-right uk-margin-large-right" type="button" uk-toggle="target: #modal-buy-security">
-	Buy
+<div ng-controller="logoutController">
+	<button class="uk-button uk-button-text" id="logoutButton" ng-click="logout()">Logout</button>
+</div>
+<div class="uk-width-1-1 uk-container" ng-controller="buyController">
+<button class="uk-button uk-button-primary uk-align-right uk-margin-large-right" ng-click="getSecurities()" type="button" uk-toggle="target: #modal-buy-security">
+	Place Order
+</button>
+<button class="uk-button uk-button-default uk-align-right" ng-click="getSecurities()" type="button" uk-toggle="target: #modal-view-security">
+	View Securities
 </button>
 
-<div id="modal-buy-security" uk-modal ng-controller="buyController">
+<div id="modal-view-security" uk-modal>
+	<div class="uk-modal-dialog uk-modal-body">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <table class="uk-table uk-table-striped">
+			<legend class="uk-legend uk-text-center">View Securities</legend>
+		    <thead>
+		        <tr>
+		            <th>Security Code</th>
+		            <th>Security Name</th>
+		            <th>Price</th>
+		        </tr>
+		    </thead>
+		    <tbody>
+		    	<tr ng-repeat="x in securities">
+		    		<th>{{x.securityCode}}</th>
+		    		<th>{{x.companyName}}</th>
+		    		<th>{{x.sellingPrice}}</th>
+		    	</tr>
+		    </tbody>
+		</table>
+    </div>
+</div>
+
+<div id="modal-buy-security" uk-modal>
     <div class="uk-modal-dialog uk-modal-body">
         <button class="uk-modal-close-default" type="button" uk-close></button>
         <form>
-        	<legend class="uk-legend uk-text-center">Buy Security</legend>
+        	<legend class="uk-legend uk-text-center">Buy</legend>
 
 	        <div class="uk-margin">
-            <input class="uk-input" type="text" placeholder="Order Number" ng-model="orderNumber">
-	        </div>
-
-	        <div class="uk-margin">
-	          <input class="uk-input" type="text" placeholder="Security Code" ng-model="securityCode">
-	          <select>
+	        	<label class="uk-form-label">Security</label>
+	          <select class="uk-select" ng-model="securityCode">
+	          	<option disabled>Select Security</option>
 	          	<option ng-repeat="x in securities" value="{{x.securityCode}}">{{x.companyName}}</option>
 	          </select>
 	        </div>
 
 	        <div class="uk-margin">
-            <input class="uk-input" type="text" placeholder="Price" ng-model="price">
+	        	<label class="uk-form-label">Price</label>
+            	<input class="uk-input" type="text" placeholder="Price" ng-model="price">
 	        </div>
 
 	        <div class="uk-margin">
+	        	<label class="uk-form-label">Quantity</label>
+            	<input class="uk-input" type="number" placeholder="Quantity" ng-model="quantity">
+	        </div>
+
+	        <div class="uk-margin">
+	        	<label class="uk-form-label">Type</label>
 	        	<select class="uk-select" ng-model="direction">
-            	<option value="Buy">Buy</option>
-            	<option value="Sell">Sell</option>
-            </select>
+	        		<option>Buy</option>
+	        		<option>Sell</option>
+	        	</select>
 	        </div>
 
 	        <div class="uk-margin">
-            <input class="uk-input" type="number" placeholder="Quantity" ng-model="quantity">
+	        	<label class="uk-form-label">Price Condition</label>
+	        	<select class="uk-select" ng-model="priceCondition">
+	            	<option value="Market">Market</option>
+	            	<option value="Limit">Limit</option>
+	            </select>
 	        </div>
 
 	        <div class="uk-margin">
-            <input class="uk-input" type="text" placeholder="Price Condition" ng-model="priceCondition">
-	        </div>
-	        <div class="uk-margin">
-	        	<p ng-model="message"></p>
+	        	<p>{{message}}</p>
 	        </div>
 	        <div class="uk-margin uk-text-center">
-	        	<button class="uk-button uk-button-primary" ng-click="letsBuyIt()">Submit</button>
+	        	<button class="uk-button uk-button-primary" ng-click="letsBuyIt()">Order</button>
 	        </div>
         </form>
 
@@ -53,55 +87,80 @@
 <div class="uk-container uk-container-medium" ng-controller="ordersController">
 
 	<table class="uk-table uk-table-striped">
-			<legend class="uk-legend uk-text-center">Bought</legend>
+			<legend class="uk-legend uk-text-center">Buy</legend>
 	    <thead>
 	        <tr>
-	            <th>S.No.</th>
 	            <th>Security Code</th>
 	            <th>Quantity</th>
 	            <th>Buy Price</th>
 	            <th>Market Price</th>
 	            <th>Status</th>
-	            <th></th>
+	            <th>Options</th>
 	        </tr>
 	    </thead>
 	    <tbody>
 	        <tr ng-repeat="buy in ordersArray | filter: {direction: 'Buy'}">
-	        	<td></td>
 	            <td>{{buy.securityCode}}</td>
-	            <td>{{buy.quantity}}</td>
-	            <td>{{buy.price}}</td>
+	            <td ng-if="buy.orderStatus == 'Pending'">
+	            	<input class="uk-input" type="" name="" ng-model="buy.quantity" value="{{buy.quantity}}">
+	            </td>
+	            <td ng-if="buy.orderStatus != 'Pending'">
+	            	{{buy.quantity}}
+	            </td>
+	            <td ng-if="buy.orderStatus == 'Pending'">
+	            	<input class="uk-input" type="" name="" ng-model="buy.price" value="{{buy.price}}">
+	            </td>
+	            <td ng-if="buy.orderStatus != 'Pending'">
+	            	{{buy.price}}
+	            </td>
 	            <td>{{buy.priceCondition}}</td>
 	            <td>{{buy.orderStatus}}</td>
-	            <td ng-if="buy.status != 'Pending'">
-	            	<button class="uk-button-primary uk-button">Sell</button>
+	            <td ng-if="buy.orderStatus == 'Pending'">
+	            	<button class="uk-button-primary uk-button" ng-click="letsBuyIt(buy, 'Buy', 'update')">Edit</button>
+	            	<button class="uk-button-danger uk-button" ng-click="letsBuyIt(buy, 'Buy', 'cancel')">Cancel</button>
 	            </td>
+	            <td ng-if="buy.orderStatus != 'Pending'">-</td>
 	        </tr>
 	    </tbody>
 	</table>
 	<div class="uk-padding"></div>
 
 	<table class="uk-table uk-table-striped">
-			<legend class="uk-legend uk-text-center">Sold</legend>
+			<legend class="uk-legend uk-text-center">Sell</legend>
 	    <thead>
 	        <tr>
-	            <th>S.No.</th>
 	            <th>Stock Name</th>
 	            <th>Quantity</th>
 	            <th>Buy Price</th>
 	            <th>Market Price</th>
 	            <th>Status</th>
+	            <th>Options</th>
 	        </tr>
 	    </thead>
 	    <tbody>
 	        <tr ng-repeat="sell in ordersArray | filter: {direction: 'Sell'}">
-	        	<td>1</td>
 	            <td>{{sell.securityCode}}</td>
-	            <td>{{sell.quantity}}</td>
-	            <td>{{sell.price}}</td>
+	            <td ng-if="sell.orderStatus == 'Pending'">
+	            	<input class="uk-input" type="" name="" ng-model="sell.quantity" value="{{sell.quantity}}">
+	            </td>
+	            <td ng-if="sell.orderStatus != 'Pending'">
+	            	{{sell.quantity}}
+	            </td>
+	            <td ng-if="sell.orderStatus == 'Pending'">
+	            	<input class="uk-input" type="" name="" ng-model="sell.price" value="{{sell.price}}">
+	            </td>
+	            <td ng-if="sell.orderStatus != 'Pending'">
+	            	{{sell.price}}
+	            </td>
 	            <td>{{sell.priceCondition}}</td>
 	            <td>{{sell.orderStatus}}</td>
+	            <td ng-if="sell.orderStatus == 'Pending'">
+	            	<button class="uk-button-primary uk-button" ng-click="letsBuyIt(sell, 'Sell', 'update')">Edit</button>
+	            	<button class="uk-button-danger uk-button" ng-click="letsBuyIt(sell, 'Sell', 'cancel')">Cancel</button>
+	            </td>
+	            <td ng-if="sell.orderStatus != 'Pending'">-</td>
 	        </tr>
 	    </tbody>
 	</table>
 </div>
+<div class="uk-padding"></div>

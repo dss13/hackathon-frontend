@@ -5,3 +5,10 @@ img#logo{
 .uk-white-nav {
 	background: white!important;
 }
+
+#logoutButton {
+	position: fixed;
+	top: 50px;
+	right: 50px;
+	z-index: 999999999!important;
+}
